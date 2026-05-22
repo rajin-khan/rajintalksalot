@@ -2,16 +2,5 @@
 .DS_Store
 **/.DS_Store
 
-# Raw source folders outside the published posts export
-rajintalksalot/chromakopia/
-rajintalksalot/diary dec/
-rajintalksalot/diary nov/
-rajintalksalot/fallen angel/
-rajintalksalot/hyperpop/
-rajintalksalot/monet/
-rajintalksalot/notebook LM/
-rajintalksalot/openclaw/
-rajintalksalot/van gogh/
-
-# Pages source documents
-rajintalksalot/*.pages
+# Legacy/raw source folder. The runnable site is self-contained in web/.
+rajintalksalot/
