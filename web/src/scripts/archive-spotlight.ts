@@ -1,6 +1,8 @@
 let cleanupPrevious: (() => void) | undefined;
 
 const SPOTLIT_CLASS = "post-card--spotlit";
+const TOUCH_POINTER_TYPES = new Set(["touch", "pen"]);
+let lastPointerType: string | null = null;
 
 function pickTitleSide(el: HTMLElement): "right" | "left" | "top" | "bottom" {
   if (typeof window !== "undefined" && window.innerWidth <= 640) {
@@ -26,11 +28,24 @@ function pickTitleSide(el: HTMLElement): "right" | "left" | "top" | "bottom" {
   return "top";
 }
 
-function twoStepSpotlightEnabled(): boolean {
+function hasTouchCapability(): boolean {
+  const nav = navigator as Navigator & { msMaxTouchPoints?: number };
   return (
-    window.matchMedia("(hover: none)").matches &&
-    window.matchMedia("(max-width: 640px)").matches
+    window.matchMedia("(pointer: coarse)").matches ||
+    nav.maxTouchPoints > 0 ||
+    (nav.msMaxTouchPoints ?? 0) > 0
   );
+}
+
+function prefersTouchInteraction(): boolean {
+  if (lastPointerType) {
+    return TOUCH_POINTER_TYPES.has(lastPointerType);
+  }
+  return hasTouchCapability();
+}
+
+function twoStepSpotlightEnabled(): boolean {
+  return prefersTouchInteraction();
 }
 
 export function initArchiveSpotlight(root: ParentNode = document) {
@@ -73,11 +88,17 @@ export function initArchiveSpotlight(root: ParentNode = document) {
     }
   };
 
-  const mqHoverNone = window.matchMedia("(hover: none)");
-  const mqNarrow = window.matchMedia("(max-width: 640px)");
-  mqHoverNone.addEventListener("change", onExitTwoStepMode, { signal });
-  mqNarrow.addEventListener("change", onExitTwoStepMode, { signal });
+  const mqPointerCoarse = window.matchMedia("(pointer: coarse)");
+  mqPointerCoarse.addEventListener("change", onExitTwoStepMode, { signal });
   window.addEventListener("resize", onExitTwoStepMode, { signal });
+
+  const onPointerInput = (e: PointerEvent) => {
+    if (e.pointerType) {
+      lastPointerType = e.pointerType;
+    }
+    onExitTwoStepMode();
+  };
+  document.addEventListener("pointerdown", onPointerInput, { capture: true, signal });
 
   const onSpotlitCardClick = (e: MouseEvent) => {
     if (!twoStepSpotlightEnabled()) return;
