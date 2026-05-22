@@ -1,14 +1,16 @@
 export const widths = [720, 1080, 1600] as const;
 export const squareImageSize = 1080;
 
-export function imageSet(stem: string) {
+export function imageSet(imageId: string) {
+  const normalizedId = imageId.replace(/^\/+/, "");
+
   return {
-    avif: `/media/posts/${stem}-1080.avif`,
+    avif: `/media/posts/${normalizedId}-1080.avif`,
     webp: widths.map((width) => ({
       width,
-      src: `/media/posts/${stem}-${width}.webp`
+      src: `/media/posts/${normalizedId}-${width}.webp`
     })),
-    fallback: `/media/posts/${stem}-1080.webp`
+    fallback: `/media/posts/${normalizedId}-1080.webp`
   };
 }
 

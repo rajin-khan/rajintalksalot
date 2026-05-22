@@ -5,10 +5,25 @@ import { slugifySeries } from "../lib/slug";
 import { imageSet, squareImageSize } from "../lib/media";
 
 const postsNewestFirst = [...posts].sort((a, b) => `${b.date}`.localeCompare(`${a.date}`));
-const seriesList = [...new Set(posts.map((p) => p.series))].sort((a, b) => a.localeCompare(b));
+const seriesStats = [...postsNewestFirst
+  .reduce((seriesMap, post, index) => {
+    const current = seriesMap.get(post.series);
+    seriesMap.set(post.series, {
+      name: post.series,
+      count: (current?.count ?? 0) + 1,
+      firstSeen: current?.firstSeen ?? index
+    });
+    return seriesMap;
+  }, new Map<string, { name: string; count: number; firstSeen: number }>())
+  .values()]
+  .sort((a, b) => (
+    b.count - a.count ||
+    a.firstSeen - b.firstSeen ||
+    a.name.localeCompare(b.name)
+  ));
 ---
 
-<BaseLayout title="RajinTalksAlot">
+<BaseLayout title="rajintalksalot">
   <div slot="header-tools" class="archive-toolbar archive-toolbar--header">
     <div>
       <p id="grid-filters-label" class="archive-filters-label">Filter by series</p>
@@ -18,13 +33,25 @@ const seriesList = [...new Set(posts.map((p) => p.series))].sort((a, b) => a.loc
         role="group"
         aria-labelledby="grid-filters-label"
       >
-        <button type="button" class="series-chip" data-filter-series="all" aria-pressed="true">
+        <button
+          type="button"
+          class="series-chip"
+          data-filter-series="all"
+          aria-pressed="true"
+          aria-label={`All, ${posts.length} posts`}
+        >
           All
         </button>
         {
-          seriesList.map((series) => (
-            <button type="button" class="series-chip" data-filter-series={slugifySeries(series)} aria-pressed="false">
-              {series}
+          seriesStats.map((series) => (
+            <button
+              type="button"
+              class="series-chip"
+              data-filter-series={slugifySeries(series.name)}
+              aria-pressed="false"
+              aria-label={`${series.name}, ${series.count} ${series.count === 1 ? "post" : "posts"}`}
+            >
+              {series.name}
             </button>
           ))
         }

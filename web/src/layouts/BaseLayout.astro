@@ -4,7 +4,7 @@ import "../styles/global.css";
 import { logoSet } from "../lib/media";
 
 const {
-  title = "RajinTalksAlot",
+  title = "rajintalksalot",
   description = "Rajin's essays, art dives, and visual stories."
 } = Astro.props;
 
@@ -24,6 +24,9 @@ const logo = logoSet();
     />
     <meta name="theme-color" content="#060607" />
     <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>{title}</title>
     <ViewTransitions />
   </head>

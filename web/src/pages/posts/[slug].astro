@@ -43,7 +43,7 @@ const stackBootstrapJson = JSON.stringify({
 const totalSlidesPadded = post.slides.length.toString().padStart(2, "0");
 ---
 
-<BaseLayout title={`${post.series}: ${post.title} | RAJINTALKSALOT`} description={post.caption.split("\n")[0]}>
+<BaseLayout title={`rk - ${post.title}`} description={post.caption.split("\n")[0]}>
   <script type="application/json" id="post-stack-bootstrap" set:html={stackBootstrapJson} />
 
   <article class="post-shell post-shell--entry-pending" data-carousel data-post-slug={post.slug}>
@@ -166,7 +166,7 @@ const totalSlidesPadded = post.slides.length.toString().padStart(2, "0");
         <div class="post-detail-meta">
           <time datetime={post.date}>{formatDate(post.date)}</time>
           <span>{post.slides.length} slides</span>
-          <a href={post.instagramUrl} target="_blank" rel="noreferrer">Instagram</a>
+          <a href={post.instagramUrl} target="_blank" rel="noreferrer">Read on IG</a>
         </div>
         <div class="caption-copy">
           {post.caption.split("\n\n").map((paragraph) => <p>{paragraph}</p>)}
