@@ -1,0 +1,62 @@
+---
+import { ViewTransitions } from "astro:transitions";
+import "../styles/global.css";
+import { logoSet } from "../lib/media";
+
+const {
+  title = "RajinTalksAlot",
+  description = "Rajin's essays, art dives, and visual stories."
+} = Astro.props;
+
+const logo = logoSet();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <meta name="theme-color" content="#060607" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to Main Content</a>
+    <header class="site-header" aria-label="Site Header">
+      <a class="brand" href="/" aria-label="Home">
+        <picture>
+          <source srcset={logo.avif} type="image/avif" />
+          <source srcset={logo.webp} type="image/webp" />
+          <img src={logo.fallback} width={logo.width} height={logo.height} alt="" />
+        </picture>
+      </a>
+      <div class="header-tools">
+        <slot name="header-tools" />
+      </div>
+    </header>
+    <main id="main" transition:animate="none">
+      <slot />
+    </main>
+    <div class="route-blackout" data-route-blackout transition:persist aria-hidden="true"></div>
+
+    <script>
+      const header = document.querySelector(".site-header");
+      const syncHeader = () => {
+        header?.classList.toggle("is-scrolled", window.scrollY > 10);
+      };
+      syncHeader();
+      window.addEventListener("scroll", syncHeader, { passive: true });
+      document.addEventListener("astro:page-load", syncHeader);
+      document.addEventListener("astro:before-preparation", () => {
+        document.body.classList.remove("post-page-caption-visible", "post-stack-body-lock");
+      });
+    </script>
+  </body>
+</html>

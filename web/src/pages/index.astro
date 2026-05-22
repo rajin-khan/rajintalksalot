@@ -1,0 +1,168 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { formatDate, posts } from "../data/posts";
+import { slugifySeries } from "../lib/slug";
+import { imageSet, squareImageSize } from "../lib/media";
+
+const postsNewestFirst = [...posts].sort((a, b) => `${b.date}`.localeCompare(`${a.date}`));
+const seriesList = [...new Set(posts.map((p) => p.series))].sort((a, b) => a.localeCompare(b));
+---
+
+<BaseLayout title="RajinTalksAlot">
+  <div slot="header-tools" class="archive-toolbar archive-toolbar--header">
+    <div>
+      <p id="grid-filters-label" class="archive-filters-label">Filter by series</p>
+      <div
+        class="archive-filters"
+        data-archive-filters
+        role="group"
+        aria-labelledby="grid-filters-label"
+      >
+        <button type="button" class="series-chip" data-filter-series="all" aria-pressed="true">
+          All
+        </button>
+        {
+          seriesList.map((series) => (
+            <button type="button" class="series-chip" data-filter-series={slugifySeries(series)} aria-pressed="false">
+              {series}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    <a
+      class="toolbar-instagram"
+      href="https://www.instagram.com/rajintalksalot/"
+      target="_blank"
+      rel="noreferrer"
+      aria-label="Instagram"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M7.5 3h9A4.5 4.5 0 0 1 21 7.5v9A4.5 4.5 0 0 1 16.5 21h-9A4.5 4.5 0 0 1 3 16.5v-9A4.5 4.5 0 0 1 7.5 3Z"
+        />
+        <path
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
+        />
+        <path stroke="currentColor" stroke-width="1.75" stroke-linecap="round" d="M16.75 7.25h.01" />
+      </svg>
+    </a>
+  </div>
+
+  <section class="grid-shell" aria-labelledby="grid-heading">
+    <h1 id="grid-heading" class="sr-only">Pieces</h1>
+    <div class="post-grid">
+      {
+        postsNewestFirst.map((post, index) => {
+          const cover = imageSet(post.slides[0]);
+          const stackFar = post.slides[1] ? imageSet(post.slides[1]) : null;
+          const stackNear = post.slides[2] ? imageSet(post.slides[2]) : null;
+          const seriesSlug = slugifySeries(post.series);
+          const frontTiltDeg =
+            ((((index + post.id) * 13 + post.slug.length * 3) % 25) - 12) * 0.12;
+          const stackDirDeg = (post.id * 47 + post.slug.length * 19 + index * 31) % 360;
+          return (
+            <a
+              class="post-card"
+              href={`/posts/${post.slug}/`}
+              aria-label={`Open ${post.series}: ${post.title}`}
+              data-series={seriesSlug}
+              style={`--stagger: ${index}; --stack-dir: ${stackDirDeg}deg; --stack-tilt: ${((index % 7) - 3) * 0.65}deg; --front-tilt: ${frontTiltDeg.toFixed(3)}deg`}
+            >
+              <span class="post-card-media">
+                {stackFar && (
+                  <span class="post-card-media__layer post-card-media__layer--far" aria-hidden="true">
+                    <picture>
+                      <source srcset={stackFar.avif} type="image/avif" />
+                      <source
+                        srcset={stackFar.webp.map((image) => `${image.src} ${image.width}w`).join(", ")}
+                        sizes="(min-width: 1120px) 31vw, (min-width: 720px) 45vw, 92vw"
+                        type="image/webp"
+                      />
+                      <img
+                        src={stackFar.fallback}
+                        width={squareImageSize}
+                        height={squareImageSize}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </picture>
+                  </span>
+                )}
+                {stackNear && (
+                  <span class="post-card-media__layer post-card-media__layer--near" aria-hidden="true">
+                    <picture>
+                      <source srcset={stackNear.avif} type="image/avif" />
+                      <source
+                        srcset={stackNear.webp.map((image) => `${image.src} ${image.width}w`).join(", ")}
+                        sizes="(min-width: 1120px) 31vw, (min-width: 720px) 45vw, 92vw"
+                        type="image/webp"
+                      />
+                      <img
+                        src={stackNear.fallback}
+                        width={squareImageSize}
+                        height={squareImageSize}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </picture>
+                  </span>
+                )}
+                <picture
+                  class="post-card-media__front"
+                >
+                  <source srcset={cover.avif} type="image/avif" />
+                  <source
+                    srcset={cover.webp.map((image) => `${image.src} ${image.width}w`).join(", ")}
+                    sizes="(min-width: 1120px) 31vw, (min-width: 720px) 45vw, 92vw"
+                    type="image/webp"
+                  />
+                  <img
+                    src={cover.fallback}
+                    width={squareImageSize}
+                    height={squareImageSize}
+                    alt={`${post.series}: ${post.title}`}
+                    loading={index <= 1 ? "eager" : "lazy"}
+                    fetchpriority={index === 0 ? "high" : "auto"}
+                  />
+                </picture>
+              </span>
+              <span class="post-card-meta">
+                <span>{String(post.id).padStart(2, "0")}</span>
+                <span>{post.series}</span>
+                <time datetime={post.date}>{formatDate(post.date)}</time>
+              </span>
+              <span class="post-card-spotlight-title" aria-hidden="true">{post.title}</span>
+            </a>
+          );
+        })
+      }
+    </div>
+    <div class="archive-spotlight-backdrop" aria-hidden="true"></div>
+  </section>
+
+  <script>
+    import { initArchivePostTransition } from "../scripts/archive-post-transition";
+    import { initArchiveFilter } from "../scripts/archive-filter";
+    import { initArchiveSpotlight } from "../scripts/archive-spotlight";
+
+    const run = () => {
+      initArchivePostTransition(document);
+      initArchiveFilter(document);
+      initArchiveSpotlight(document);
+    };
+
+    run();
+    document.addEventListener("astro:page-load", run);
+  </script>
+</BaseLayout>

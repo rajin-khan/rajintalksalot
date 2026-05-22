@@ -1,0 +1,215 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { formatDate, posts } from "../../data/posts";
+import { imageSet, squareImageSize } from "../../lib/media";
+
+export function getStaticPaths() {
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post }
+  }));
+}
+
+const { post } = Astro.props;
+const postIndex = posts.findIndex((entry) => entry.slug === post.slug);
+const nextPost = posts[(postIndex + 1) % posts.length];
+const prevPost = posts[(postIndex - 1 + posts.length) % posts.length];
+
+/** Same sort + index formulas as archive cards so hero stack aligns with the card you opened */
+const postsNewestFirst = [...posts].sort((a, b) => `${b.date}`.localeCompare(`${a.date}`));
+const archiveIndex = postsNewestFirst.findIndex((entry) => entry.slug === post.slug);
+const archiveCardIndex = archiveIndex >= 0 ? archiveIndex : 0;
+const stackDirDeg = (post.id * 47 + post.slug.length * 19 + archiveCardIndex * 31) % 360;
+const frontTiltDeg = ((((archiveCardIndex + post.id) * 13 + post.slug.length * 3) % 25) - 12) * 0.12;
+const stackTiltDeg = ((archiveCardIndex % 7) - 3) * 0.65;
+const heroStackStyle = `--stack-dir: ${stackDirDeg}deg; --stack-tilt: ${stackTiltDeg}deg; --front-tilt: ${frontTiltDeg.toFixed(3)}deg`;
+
+const heroFar = post.slides[2] ? imageSet(post.slides[2]) : null;
+const heroNear = post.slides[1] ? imageSet(post.slides[1]) : null;
+const heroCover = imageSet(post.slides[0]);
+
+const stackBootstrapJson = JSON.stringify({
+  media: post.slides.map((stem) => {
+    const m = imageSet(stem);
+    return {
+      avif: m.avif,
+      webpSrcset: m.webp.map((image) => `${image.src} ${image.width}w`).join(", "),
+      fallback: m.fallback
+    };
+  }),
+  meta: { series: post.series, title: post.title }
+});
+
+const totalSlidesPadded = post.slides.length.toString().padStart(2, "0");
+---
+
+<BaseLayout title={`${post.series}: ${post.title} | RAJINTALKSALOT`} description={post.caption.split("\n")[0]}>
+  <script type="application/json" id="post-stack-bootstrap" set:html={stackBootstrapJson} />
+
+  <article class="post-shell post-shell--entry-pending" data-carousel data-post-slug={post.slug}>
+    <section class="media-column" aria-label={`${post.title} Slides`}>
+      <div
+        class="carousel carousel--stack"
+        data-carousel-track
+        tabindex="0"
+        aria-label="Post image stack — scroll to advance slides"
+      >
+        <div class="stack-carousel__viewport">
+          <figure class="stack-carousel__figure" style={heroStackStyle}>
+            <div
+              class="post-card-media slide-hero-stack slide-hero-stack--expanded"
+              data-slide-hero-stack
+              data-post-stack
+            >
+              <span
+                class="post-card-media__layer post-card-media__layer--far"
+                data-stack-slot="far"
+                aria-hidden="true"
+                hidden={post.slides.length < 3}
+              >
+                {
+                  heroFar && (
+                    <picture>
+                      <source srcset={heroFar.avif} type="image/avif" />
+                      <source
+                        srcset={heroFar.webp.map((image) => `${image.src} ${image.width}w`).join(", ")}
+                        sizes="(min-width: 980px) 56vw, 94vw"
+                        type="image/webp"
+                      />
+                      <img
+                        src={heroFar.fallback}
+                        width={squareImageSize}
+                        height={squareImageSize}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </picture>
+                  )
+                }
+              </span>
+              <span
+                class="post-card-media__layer post-card-media__layer--near"
+                data-stack-slot="near"
+                aria-hidden="true"
+                hidden={post.slides.length < 2}
+              >
+                {
+                  heroNear && (
+                    <picture>
+                      <source srcset={heroNear.avif} type="image/avif" />
+                      <source
+                        srcset={heroNear.webp.map((image) => `${image.src} ${image.width}w`).join(", ")}
+                        sizes="(min-width: 980px) 56vw, 94vw"
+                        type="image/webp"
+                      />
+                      <img
+                        src={heroNear.fallback}
+                        width={squareImageSize}
+                        height={squareImageSize}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </picture>
+                  )
+                }
+              </span>
+              <picture
+                class="post-card-media__front"
+              >
+                <source srcset={heroCover.avif} type="image/avif" />
+                <source
+                  srcset={heroCover.webp.map((image) => `${image.src} ${image.width}w`).join(", ")}
+                  sizes="(min-width: 980px) 56vw, 94vw"
+                  type="image/webp"
+                />
+                <img
+                  src={heroCover.fallback}
+                  width={squareImageSize}
+                  height={squareImageSize}
+                  alt={`${post.series}: ${post.title}, slide 1 of ${post.slides.length}`}
+                  loading="eager"
+                  fetchpriority="high"
+                />
+              </picture>
+            </div>
+            <figcaption aria-live="polite">
+              <span data-stack-current-index>01</span>
+              <span>{totalSlidesPadded}</span>
+            </figcaption>
+          </figure>
+        </div>
+        {
+          post.slides.length > 1 && (
+            <div class="carousel-scroll-strut" aria-hidden="true">
+              {
+                post.slides.map((_, i) => (
+                  <div
+                    class="carousel-scroll-page"
+                    id={`slide-${i + 1}`}
+                    data-carousel-scroll-page
+                  />
+                ))
+              }
+            </div>
+          )
+        }
+      </div>
+    </section>
+
+    <aside class="caption-column" aria-label="Post Caption">
+      <div class="caption-panel">
+        <a class="back-link" href="/">All pieces</a>
+        <p class="eyebrow">{String(post.id).padStart(2, "0")} / {post.series}</p>
+        <h1>{post.title}</h1>
+        <div class="post-detail-meta">
+          <time datetime={post.date}>{formatDate(post.date)}</time>
+          <span>{post.slides.length} slides</span>
+          <a href={post.instagramUrl} target="_blank" rel="noreferrer">Instagram</a>
+        </div>
+        <div class="caption-copy">
+          {post.caption.split("\n\n").map((paragraph) => <p>{paragraph}</p>)}
+        </div>
+      </div>
+      <nav class="post-nav" aria-label="Adjacent Posts">
+        <a href={`/posts/${prevPost.slug}/`}>Previous</a>
+        <a href={`/posts/${nextPost.slug}/`}>Next</a>
+      </nav>
+      <div class="slide-progress" aria-label="Slide Progress">
+        {
+          post.slides.map((_, index) => (
+            <a href={`#slide-${index + 1}`} data-progress-dot aria-label={`Go to slide ${index + 1}`}>
+              <span>{index + 1}</span>
+            </a>
+          ))
+        }
+      </div>
+    </aside>
+  </article>
+
+  <script>
+    import { initPostBackTransition } from "../../scripts/archive-post-transition";
+    import { initPostEntranceSequence, initPostHeroStackExpand } from "../../scripts/post-caption-enter";
+    import { initPostCarousel, primePostCarouselStage } from "../../scripts/post-carousel";
+
+    let carouselBootTimer;
+
+    const boot = () => {
+      window.clearTimeout(carouselBootTimer);
+      initPostHeroStackExpand();
+      initPostBackTransition(document);
+      primePostCarouselStage(document);
+      initPostEntranceSequence();
+      carouselBootTimer = window.setTimeout(() => {
+        initPostCarousel(document);
+      }, 620);
+    };
+
+    boot();
+    document.addEventListener("astro:page-load", boot);
+    document.addEventListener("astro:before-preparation", () => {
+      window.clearTimeout(carouselBootTimer);
+    });
+  </script>
+</BaseLayout>
