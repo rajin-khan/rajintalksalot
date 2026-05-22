@@ -384,6 +384,8 @@ export function initPostCarousel(root: ParentNode = document) {
   const stackRoot = parts?.stackRoot;
 
   const pages = Array.from(shell?.querySelectorAll<HTMLElement>("[data-carousel-scroll-page]") ?? []);
+  const simpleCarousel = shell?.querySelector<HTMLElement>("[data-simple-carousel]");
+  const simpleSlides = Array.from(shell?.querySelectorAll<HTMLElement>("[data-simple-carousel-slide]") ?? []);
   const dots = Array.from(shell?.querySelectorAll<HTMLAnchorElement>("[data-progress-dot]") ?? []);
   const currentLabel = shell?.querySelector("[data-stack-current-index]");
   const bootstrap = parts?.bootstrap;
@@ -396,12 +398,13 @@ export function initPostCarousel(root: ParentNode = document) {
   const heroTransitionName = frontPicture
     ? getComputedStyle(frontPicture).viewTransitionName
     : "none";
-  const mqDesktop = window.matchMedia("(min-width: 961px)");
+  const mqLockedDeck = window.matchMedia("(min-width: 1024px) and (orientation: landscape)");
   const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const ctrl = new AbortController();
 
   let activeIndex = -1;
   let rafScan = 0;
+  let rafSimpleScan = 0;
   let wheelDelta = 0;
   let wheelResetTimer = 0;
   let unlockTimer = 0;
@@ -416,19 +419,23 @@ export function initPostCarousel(root: ParentNode = document) {
     });
   };
 
-  const setBodyLock = () => {
-    document.body.classList.toggle("post-stack-body-lock", mqDesktop.matches);
-    if (mqDesktop.matches) {
-      stackRoot.classList.add("slide-hero-stack--stage-primed");
-    }
-    stackRoot.classList.toggle("slide-hero-stack--staged", mqDesktop.matches);
+  const isLockedDeck = () => mqLockedDeck.matches;
+  const isSimpleCarousel = () => !isLockedDeck();
+
+  const setDeckMode = () => {
+    const lockedDeck = isLockedDeck();
+    document.body.classList.toggle("post-stack-body-lock", lockedDeck);
+    document.body.classList.toggle("post-stack-scroll-deck", false);
+    document.body.classList.toggle("post-simple-carousel-mode", !lockedDeck);
+    stackRoot.classList.add("slide-hero-stack--stage-primed");
+    stackRoot.classList.add("slide-hero-stack--staged");
     if (frontPicture && heroTransitionName !== "none") {
-      frontPicture.style.viewTransitionName = mqDesktop.matches ? "none" : heroTransitionName;
+      frontPicture.style.viewTransitionName = "none";
     }
     setLiveStageTransitionName(
       liveStage,
       activeIndex >= 0 ? activeIndex : 0,
-      mqDesktop.matches ? heroTransitionName : "none",
+      lockedDeck ? heroTransitionName : "none",
     );
   };
 
@@ -451,7 +458,7 @@ export function initPostCarousel(root: ParentNode = document) {
     if (reduceMotion() || prev < 0 || direction === "none") {
       syncLayers(next, media, meta, stackRoot);
       setLiveStageIndex(liveStage, next);
-      setLiveStageTransitionName(liveStage, next, mqDesktop.matches ? heroTransitionName : "none");
+      setLiveStageTransitionName(liveStage, next, isLockedDeck() ? heroTransitionName : "none");
       return;
     }
 
@@ -473,7 +480,7 @@ export function initPostCarousel(root: ParentNode = document) {
       window.clearTimeout(transitionTimer);
       syncLayers(next, media, meta, stackRoot);
       setLiveStageIndex(liveStage, next);
-      setLiveStageTransitionName(liveStage, next, mqDesktop.matches ? heroTransitionName : "none");
+      setLiveStageTransitionName(liveStage, next, isLockedDeck() ? heroTransitionName : "none");
 
       void stackRoot.offsetHeight;
       stackRoot.classList.remove("slide-hero-stack--transitioning");
@@ -520,7 +527,7 @@ export function initPostCarousel(root: ParentNode = document) {
   };
 
   const scanMobileScroll = () => {
-    if (pages.length === 0 || mqDesktop.matches) return;
+    if (pages.length === 0 || isSimpleCarousel()) return;
 
     const vc = window.innerHeight * 0.42;
     let bestIx = 0;
@@ -545,8 +552,45 @@ export function initPostCarousel(root: ParentNode = document) {
     rafScan = requestAnimationFrame(scanMobileScroll);
   };
 
+  const scanSimpleCarousel = () => {
+    if (!simpleCarousel || simpleSlides.length === 0 || !isSimpleCarousel()) return;
+
+    const carouselRect = simpleCarousel.getBoundingClientRect();
+    const center = carouselRect.left + carouselRect.width * 0.5;
+    let bestIx = 0;
+    let bestDist = Infinity;
+
+    simpleSlides.forEach((slide, i) => {
+      const rect = slide.getBoundingClientRect();
+      const slideCenter = rect.left + rect.width * 0.5;
+      const dist = Math.abs(slideCenter - center);
+
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestIx = i;
+      }
+    });
+
+    publish(bestIx, "none");
+  };
+
+  const scheduleSimpleScan = () => {
+    cancelAnimationFrame(rafSimpleScan);
+    rafSimpleScan = requestAnimationFrame(scanSimpleCarousel);
+  };
+
+  const scrollSimpleToIndex = (index: number, smooth: boolean) => {
+    if (!simpleCarousel || !simpleSlides[index]) return;
+    const slide = simpleSlides[index];
+    const left = slide.offsetLeft - (simpleCarousel.clientWidth - slide.clientWidth) * 0.5;
+    simpleCarousel.scrollTo({
+      left,
+      behavior: smooth && !reduceMotion() ? "smooth" : "auto",
+    });
+  };
+
   const onWheel = (event: WheelEvent) => {
-    if (!mqDesktop.matches || shouldIgnoreNavigationEvent(event.target)) return;
+    if (!isLockedDeck() || shouldIgnoreNavigationEvent(event.target)) return;
     event.preventDefault();
     if (locked) return;
 
@@ -563,7 +607,7 @@ export function initPostCarousel(root: ParentNode = document) {
   };
 
   const onKeydown = (event: KeyboardEvent) => {
-    if (!mqDesktop.matches) return;
+    if (!isLockedDeck()) return;
     if (shouldIgnoreNavigationEvent(event.target)) return;
     if (event.metaKey || event.ctrlKey || event.altKey) return;
 
@@ -586,12 +630,12 @@ export function initPostCarousel(root: ParentNode = document) {
   };
 
   const onTouchStart = (event: TouchEvent) => {
-    if (!mqDesktop.matches || shouldIgnoreNavigationEvent(event.target)) return;
+    if (!isLockedDeck() || shouldIgnoreNavigationEvent(event.target)) return;
     touchStartY = event.touches[0]?.clientY ?? null;
   };
 
   const onTouchEnd = (event: TouchEvent) => {
-    if (!mqDesktop.matches || touchStartY === null || shouldIgnoreNavigationEvent(event.target)) return;
+    if (!isLockedDeck() || touchStartY === null || shouldIgnoreNavigationEvent(event.target)) return;
     const endY = event.changedTouches[0]?.clientY ?? touchStartY;
     const delta = touchStartY - endY;
     touchStartY = null;
@@ -604,7 +648,13 @@ export function initPostCarousel(root: ParentNode = document) {
       "click",
       (event) => {
         event.preventDefault();
-        publish(index);
+        const current = activeIndex >= 0 ? activeIndex : 0;
+        if (isSimpleCarousel()) {
+          publish(index, "none");
+          scrollSimpleToIndex(index, true);
+        } else {
+          publish(index, index > current ? "forward" : index < current ? "back" : "none");
+        }
       },
       { signal: ctrl.signal },
     );
@@ -616,21 +666,33 @@ export function initPostCarousel(root: ParentNode = document) {
   window.addEventListener("keydown", onKeydown, { signal: ctrl.signal });
   window.addEventListener("scroll", scheduleMobileScan, { passive: true, signal: ctrl.signal });
   window.addEventListener("resize", scheduleMobileScan, { passive: true, signal: ctrl.signal });
+  window.addEventListener("resize", scheduleSimpleScan, { passive: true, signal: ctrl.signal });
+  simpleCarousel?.addEventListener("scroll", scheduleSimpleScan, { passive: true, signal: ctrl.signal });
   document.addEventListener("astro:after-swap", () => cleanupPrevious?.(), {
     signal: ctrl.signal,
     once: true,
   });
-  mqDesktop.addEventListener("change", () => {
-    setBodyLock();
+  mqLockedDeck.addEventListener("change", () => {
+    setDeckMode();
     scheduleMobileScan();
+    scheduleSimpleScan();
+    if (isSimpleCarousel()) {
+      scrollSimpleToIndex(activeIndex >= 0 ? activeIndex : 0, false);
+    }
   }, { signal: ctrl.signal });
 
-  setBodyLock();
+  setDeckMode();
   publish(readInitialIndex(media.length));
+  if (isSimpleCarousel()) {
+    scrollSimpleToIndex(activeIndex >= 0 ? activeIndex : 0, false);
+  }
   scheduleMobileScan();
+  scheduleSimpleScan();
 
   cleanupPrevious = () => {
     document.body.classList.remove("post-stack-body-lock");
+    document.body.classList.remove("post-stack-scroll-deck");
+    document.body.classList.remove("post-simple-carousel-mode");
     window.clearTimeout(wheelResetTimer);
     window.clearTimeout(unlockTimer);
     window.clearTimeout(transitionTimer);
@@ -638,6 +700,7 @@ export function initPostCarousel(root: ParentNode = document) {
     stripDeckClasses(stackRoot);
     ctrl.abort();
     cancelAnimationFrame(rafScan);
+    cancelAnimationFrame(rafSimpleScan);
     cleanupPrevious = undefined;
   };
 }
