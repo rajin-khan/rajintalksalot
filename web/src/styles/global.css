@@ -202,7 +202,9 @@ main {
 .site-footer {
   box-sizing: border-box;
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 0.8rem;
   width: 100%;
   max-width: 100%;
   padding:
@@ -229,6 +231,14 @@ main {
   color: var(--accent);
 }
 
+.site-footer a[aria-current="page"] {
+  color: var(--accent);
+}
+
+.site-footer span {
+  color: rgba(244, 239, 230, 0.22);
+}
+
 .site-footer a:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
@@ -247,8 +257,166 @@ main {
     pointer-events: none;
   }
 
+  body:has(.post-shell[data-carousel]) .site-footer a,
   body.post-stack-body-lock .site-footer a {
     pointer-events: auto;
+  }
+}
+
+.about-body .site-header {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-1rem);
+}
+
+.about-shell {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  min-height: 100svh;
+  width: min(980px, 100%);
+  margin: 0 auto;
+  padding:
+    max(5.5rem, calc(env(safe-area-inset-top) + 4.5rem))
+    max(clamp(1.5rem, 6vw, 4.5rem), env(safe-area-inset-right))
+    max(6.75rem, calc(env(safe-area-inset-bottom) + 5.75rem))
+    max(clamp(1.5rem, 6vw, 4.5rem), env(safe-area-inset-left));
+  text-align: center;
+  transform: translateY(clamp(3.25rem, 8.5svh, 6.5rem));
+}
+
+.about-shell::before {
+  display: none;
+}
+
+.about-shell::after {
+  display: none;
+}
+
+.about-mark {
+  position: relative;
+  width: clamp(18rem, 48vw, 35rem);
+  margin: 0 auto clamp(1.7rem, 3.2vw, 2.65rem);
+  opacity: 0;
+  filter: drop-shadow(0 22px 54px rgba(0, 0, 0, 0.62));
+  transform: translateY(0.8rem) scale(0.97);
+  animation: aboutMarkIn 720ms 90ms var(--ease-out) forwards;
+}
+
+.about-mark::before {
+  position: absolute;
+  inset: -78% -28% -62%;
+  z-index: -1;
+  content: "";
+  background:
+    radial-gradient(circle at 50% 50%, rgba(223, 194, 122, 0.18), transparent 34%),
+    radial-gradient(circle at 50% 54%, rgba(141, 183, 180, 0.09), transparent 52%);
+  filter: blur(24px);
+  opacity: 0;
+  animation: aboutGlowIn 900ms 170ms var(--ease-out) forwards;
+  pointer-events: none;
+}
+
+.about-mark picture {
+  display: block;
+  line-height: 0;
+}
+
+.about-mark img {
+  width: 100%;
+  height: auto;
+}
+
+.about-copy {
+  display: grid;
+  justify-items: center;
+  gap: clamp(0.95rem, 1.9vw, 1.22rem);
+  max-width: 52rem;
+  opacity: 0;
+  transform: translateY(0.9rem);
+  animation: aboutCopyIn 720ms 360ms var(--ease-out) forwards;
+}
+
+.about-copy::after {
+  width: min(30rem, 78%);
+  height: 1px;
+  margin-top: clamp(0.85rem, 2vw, 1.35rem);
+  content: "";
+  background: linear-gradient(90deg, transparent, rgba(244, 239, 230, 0.16), transparent);
+  opacity: 0;
+  animation: aboutLineIn 720ms 620ms var(--ease-out) forwards;
+}
+
+.about-copy .eyebrow {
+  margin: 0;
+  color: var(--accent-cool);
+}
+
+.about-copy p:not(.eyebrow) {
+  max-width: 46rem;
+  margin: 0;
+  color: rgba(244, 239, 230, 0.72);
+  font-size: clamp(0.96rem, 1.28vw, 1.12rem);
+  line-height: 1.82;
+}
+
+.about-return {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.65rem;
+  margin-top: clamp(0.55rem, 1.6vw, 1.05rem);
+  padding: 0.78rem 1.15rem;
+  color: var(--bg);
+  background: var(--accent);
+  border: 1px solid rgba(244, 239, 230, 0.16);
+  border-radius: 999px;
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.36);
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.17em;
+  line-height: 1;
+  text-transform: uppercase;
+  transition:
+    color var(--duration-short) var(--ease-out),
+    background var(--duration-short) var(--ease-out),
+    transform var(--duration-short) var(--ease-out),
+    box-shadow var(--duration-short) var(--ease-out);
+}
+
+.about-return:hover {
+  color: var(--bg);
+  background: var(--ink);
+  box-shadow: 0 24px 68px rgba(0, 0, 0, 0.48);
+  transform: translateY(-2px);
+}
+
+@keyframes aboutMarkIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes aboutCopyIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes aboutGlowIn {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes aboutLineIn {
+  to {
+    opacity: 1;
   }
 }
 

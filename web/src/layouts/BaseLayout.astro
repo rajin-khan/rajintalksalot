@@ -24,6 +24,7 @@ const {
   articleSection,
   publishedTime,
   modifiedTime,
+  bodyClass = "",
   structuredData = []
 } = Astro.props;
 
@@ -32,6 +33,7 @@ const siteBase = Astro.site ?? new URL(siteUrl);
 const canonicalUrl = new URL(canonicalPath, siteBase).toString();
 const imageUrl = new URL(image, siteBase).toString();
 const structuredDataItems = Array.isArray(structuredData) ? structuredData : [structuredData];
+const isAboutPage = Astro.url.pathname.startsWith("/about");
 ---
 
 <!doctype html>
@@ -83,7 +85,7 @@ const structuredDataItems = Array.isArray(structuredData) ? structuredData : [st
     }
     <ViewTransitions />
   </head>
-  <body>
+  <body class={bodyClass}>
     <a class="skip-link" href="#main">Skip to Main Content</a>
     <header class="site-header" aria-label="Site Header">
       <a class="brand" href="/" aria-label="Home">
@@ -100,19 +102,72 @@ const structuredDataItems = Array.isArray(structuredData) ? structuredData : [st
     <main id="main" transition:animate="none">
       <slot />
     </main>
-    <footer class="site-footer" aria-label="Portfolio">
+    <footer class="site-footer" aria-label="Site Links">
       <a href="https://rajinkhan.com" target="_blank" rel="noreferrer">by rajin khan</a>
+      <span aria-hidden="true">|</span>
+      <a
+        href="/about/"
+        data-site-fade-link
+        aria-current={isAboutPage ? "page" : undefined}
+      >
+        about
+      </a>
     </footer>
     <div class="route-blackout" data-route-blackout transition:persist aria-hidden="true"></div>
 
     <script>
       const header = document.querySelector(".site-header");
+      const routeBlackout = () => document.querySelector("[data-route-blackout]");
+      const isPlainPrimaryClick = (event) => (
+        event.button === 0 &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.shiftKey &&
+        !event.altKey
+      );
       const syncHeader = () => {
         header?.classList.toggle("is-scrolled", window.scrollY > 10);
       };
+      const bindSiteFadeLinks = () => {
+        document.querySelectorAll("[data-site-fade-link]").forEach((link) => {
+          if (link.dataset.siteFadeBound === "true") return;
+          link.dataset.siteFadeBound = "true";
+
+          link.addEventListener("click", (event) => {
+            if (!isPlainPrimaryClick(event)) return;
+            if (link.target || link.hasAttribute("download")) return;
+
+            const href = new URL(link.href, window.location.href);
+            if (href.origin !== window.location.origin) return;
+            if (href.pathname === window.location.pathname && href.hash === window.location.hash) return;
+
+            event.preventDefault();
+            if (document.body.classList.contains("site-route-blackout")) return;
+
+            const storageKey = link.dataset.siteFadeKey;
+            if (storageKey) {
+              try {
+                window.sessionStorage.setItem(storageKey, link.dataset.siteFadeValue || "1");
+              } catch {
+                // The transition still works without sessionStorage.
+              }
+            }
+
+            document.body.classList.add("site-route-blackout");
+            routeBlackout()?.classList.add("route-blackout--visible");
+            window.setTimeout(() => {
+              window.location.href = href.href;
+            }, 190);
+          });
+        });
+      };
       syncHeader();
+      bindSiteFadeLinks();
       window.addEventListener("scroll", syncHeader, { passive: true });
-      document.addEventListener("astro:page-load", syncHeader);
+      document.addEventListener("astro:page-load", () => {
+        syncHeader();
+        bindSiteFadeLinks();
+      });
       document.addEventListener("astro:before-preparation", () => {
         document.body.classList.remove("post-page-caption-visible", "post-stack-body-lock");
       });

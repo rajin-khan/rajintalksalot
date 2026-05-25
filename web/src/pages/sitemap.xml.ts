@@ -19,6 +19,10 @@ export function GET({ site }: { site?: URL }) {
       path: "/",
       lastmod: posts.reduce((latest, post) => (post.date > latest ? post.date : latest), posts[0]?.date ?? "")
     },
+    {
+      path: "/about/",
+      lastmod: posts.reduce((latest, post) => (post.date > latest ? post.date : latest), posts[0]?.date ?? "")
+    },
     ...posts.map((post) => ({
       path: `/posts/${post.slug}/`,
       lastmod: post.date

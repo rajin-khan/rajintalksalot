@@ -1,0 +1,94 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { logoSet } from "../lib/media";
+import { defaultDescription, defaultOgImage, siteName, toAbsoluteUrl } from "../lib/seo";
+
+const logo = logoSet();
+const description = "About rajintalksalot, Rajin Khan's visual archive for media dives, recommendations, tech notes, monthly recaps, personal reflections, and original work.";
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  name: "About rajintalksalot",
+  description,
+  url: toAbsoluteUrl("/about/"),
+  image: toAbsoluteUrl(defaultOgImage),
+  isPartOf: {
+    "@type": "WebSite",
+    name: siteName,
+    url: toAbsoluteUrl("/")
+  },
+  author: {
+    "@type": "Person",
+    name: "Rajin Khan",
+    url: "https://rajinkhan.com"
+  }
+};
+---
+
+<BaseLayout
+  title="rk - About"
+  description={description || defaultDescription}
+  canonicalPath="/about/"
+  bodyClass="about-body"
+  structuredData={structuredData}
+>
+  <section class="about-shell" aria-labelledby="about-heading">
+    <h1 id="about-heading" class="sr-only">About rajintalksalot</h1>
+    <div class="about-mark" aria-hidden="true">
+      <picture>
+        <source srcset={logo.avif} type="image/avif" />
+        <source srcset={logo.webp} type="image/webp" />
+        <img src={logo.fallback} width={logo.width} height={logo.height} alt="" />
+      </picture>
+    </div>
+
+    <div class="about-copy">
+      <p class="eyebrow">about the archive</p>
+      <p>
+        I started <strong>rajintalksalot</strong> on Instagram because it was the
+        easiest place to put thoughts into motion: image, caption, post, move on.
+        Also because I really fucking talk a lot.
+        But at some point, the format didn't cut it for what I wanted
+        the pieces to do.
+      </p>
+      <p>
+        I didn't just want a blog that listed posts. I wanted the interface to
+        matter too. The scrolling, the stacks, the pauses, the glows, all that 
+        fancy UI/UX bullshit, sure, but really it was simpler than that: I wanted 
+        the site to feel like the work itself.
+      </p>
+      <p>
+        Instagram is great for momentum, but terrible at letting a post breathe.
+        So I went to the drawing board and built what I wanted myself. Same feeling, same visual-first
+        instinct, but less feed, more exhibition.
+      </p>
+      <p>
+        <strong>Media Dives</strong> is where I overthink films, shows, albums,
+        paintings, and anything else that refuses to leave my head. <strong>Not
+        Gatekeeping</strong> is for things worth passing on. <strong>ByteLine</strong>
+        is for tools, stacks, tech, and projects. <strong>From the Vault</strong>
+        is for my own work (coming soon, probably). <strong>Monologue</strong> is exactly what it sounds like.
+      </p>
+      <p>
+        And then there are the monthly <strong>In Words</strong> posts: little
+        recaps of what I've been into, what stuck, what changed the mood, and
+        what somehow became important for no obvious reason. The site keeps the
+        beat of the original posts, but gives the words and images room to
+        do their thing.
+      </p>
+      <p>
+        I post whatever I want, whenever I feel like it.
+        I don't follow any schedule.
+        Hope you find stuff you like.
+      </p>
+      <a
+        class="about-return"
+        href="/"
+        data-site-fade-link
+        data-site-fade-key="rajintalksalot-archive-entry"
+      >
+        Back to blog
+      </a>
+    </div>
+  </section>
+</BaseLayout>
