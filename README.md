@@ -213,7 +213,7 @@ web/public/og-image-small.jpg
 The site URL is configured in `web/astro.config.mjs`:
 
 ```js
-site: "https://rajintalksalot.com"
+site: "https://rajintalksalot.vercel.app"
 ```
 
 SEO helpers live in:

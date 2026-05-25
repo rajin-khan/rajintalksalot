@@ -1,7 +1,7 @@
 export const siteName = "rajintalksalot";
-export const siteUrl = "https://rajintalksalot.com";
+export const siteUrl = "https://rajintalksalot.vercel.app";
 export const defaultDescription = "Rajin's essays, art dives, and visual stories.";
-export const defaultOgImage = "/og-image.png";
+export const defaultOgImage = "/og-image.jpg";
 export const defaultOgImageAlt = "rajintalksalot visual archive cover";
 export const ogImageWidth = 1200;
 export const ogImageHeight = 630;
