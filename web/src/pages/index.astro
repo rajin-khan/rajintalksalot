@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import { formatDate, posts } from "../data/posts";
 import { slugifySeries } from "../lib/slug";
 import { imageSet, squareImageSize } from "../lib/media";
+import { defaultDescription, defaultOgImage, siteName, toAbsoluteUrl } from "../lib/seo";
 
 const postsNewestFirst = [...posts].sort((a, b) => `${b.date}`.localeCompare(`${a.date}`));
 const seriesStats = [...postsNewestFirst
@@ -21,9 +22,50 @@ const seriesStats = [...postsNewestFirst
     a.firstSeen - b.firstSeen ||
     a.name.localeCompare(b.name)
   ));
+
+const homeStructuredData = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: siteName,
+    url: toAbsoluteUrl("/"),
+    description: defaultDescription,
+    creator: {
+      "@type": "Person",
+      name: "Rajin Khan",
+      url: "https://rajinkhan.com"
+    },
+    sameAs: ["https://www.instagram.com/rajintalksalot/"]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: siteName,
+    url: toAbsoluteUrl("/"),
+    description: defaultDescription,
+    image: toAbsoluteUrl(defaultOgImage),
+    author: {
+      "@type": "Person",
+      name: "Rajin Khan",
+      url: "https://rajinkhan.com"
+    },
+    blogPost: postsNewestFirst.map((post) => ({
+      "@type": "BlogPosting",
+      headline: post.title,
+      url: toAbsoluteUrl(`/posts/${post.slug}/`),
+      datePublished: post.date,
+      articleSection: post.series
+    }))
+  }
+];
 ---
 
-<BaseLayout title="rajintalksalot">
+<BaseLayout
+  title="rajintalksalot"
+  description={defaultDescription}
+  canonicalPath="/"
+  structuredData={homeStructuredData}
+>
   <div slot="header-tools" class="archive-toolbar archive-toolbar--header">
     <div>
       <p id="grid-filters-label" class="archive-filters-label">Filter by series</p>
