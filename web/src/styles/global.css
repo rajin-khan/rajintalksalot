@@ -199,6 +199,59 @@ main {
   box-sizing: border-box;
 }
 
+.site-footer {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  padding:
+    clamp(2.25rem, 5vw, 4rem)
+    max(clamp(1.5rem, 4.5vw, 3.75rem), env(safe-area-inset-right))
+    max(clamp(2.5rem, 6vw, 4.75rem), calc(env(safe-area-inset-bottom) + 1.75rem))
+    max(clamp(1.5rem, 4.5vw, 3.75rem), env(safe-area-inset-left));
+  color: var(--dim);
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.site-footer a {
+  color: inherit;
+  transition: color var(--duration-short) var(--ease-out);
+}
+
+.site-footer a:hover {
+  color: var(--accent);
+}
+
+.site-footer a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+@media (min-width: 961px) {
+  body:has(.post-shell[data-carousel]) .site-footer,
+  body.post-stack-body-lock .site-footer {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 12;
+    padding-top: 0;
+    padding-bottom: max(1rem, calc(env(safe-area-inset-bottom) + 0.9rem));
+    pointer-events: none;
+  }
+
+  body.post-stack-body-lock .site-footer a {
+    pointer-events: auto;
+  }
+}
+
 .grid-shell {
   box-sizing: border-box;
   width: min(1480px, 100%);
@@ -820,11 +873,16 @@ body.archive-return-entering.archive-return-visible .grid-shell {
 }
 
 .stack-carousel__viewport {
+  --stack-sticky-top: max(4.35rem, calc(env(safe-area-inset-top) + 3.15rem));
+  --stack-sticky-bottom: max(2.35rem, calc(env(safe-area-inset-bottom) + 1.65rem));
   position: sticky;
-  top: max(4.35rem, calc(env(safe-area-inset-top) + 3.15rem));
+  top: var(--stack-sticky-top);
   z-index: 2;
+  display: grid;
+  align-items: center;
   background: transparent;
-  padding-block: clamp(0.35rem, 1.35vh, 1rem) 0;
+  min-height: calc(100svh - var(--stack-sticky-top) - var(--stack-sticky-bottom));
+  padding-block: clamp(0.35rem, 1.35vh, 1rem);
   padding-inline: clamp(1.25rem, 4.25vw, 3.25rem);
   box-sizing: border-box;
 }
@@ -845,7 +903,7 @@ body.archive-return-entering.archive-return-visible .grid-shell {
 .stack-carousel__figure {
   --stack-art-max: min(100%, min(600px, calc(100vmin - 11rem)));
   display: grid;
-  align-content: start;
+  align-content: center;
   justify-items: center;
   min-width: 0;
   margin: 0;
@@ -1570,7 +1628,7 @@ body.post-page-caption-visible article.post-shell[data-carousel] .caption-panel 
     align-self: stretch;
     gap: clamp(0.35rem, 1.25vw, 0.62rem);
     max-width: 100%;
-    padding: 0 0 0.5rem;
+    padding: 0.35rem 0 0.75rem;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
@@ -1586,6 +1644,7 @@ body.post-page-caption-visible article.post-shell[data-carousel] .caption-panel 
     width: clamp(0.86rem, 2.25vw, 1.08rem);
     height: clamp(0.86rem, 2.25vw, 1.08rem);
     flex-shrink: 0;
+    margin-block: 0.1rem;
   }
 
   .slide-progress a:hover,
@@ -1636,47 +1695,54 @@ body.post-page-caption-visible article.post-shell[data-carousel] .caption-panel 
   }
 
   .site-header:has(.archive-toolbar--header) {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.75rem 1rem;
+    justify-content: flex-start;
+    gap: 0.9rem;
   }
 
   .site-header:has(.archive-toolbar--header) .brand {
-    grid-column: 1;
-    grid-row: 1;
+    align-self: center;
   }
 
-  .site-header:has(.archive-toolbar--header) .header-tools,
+  .site-header:has(.archive-toolbar--header) .header-tools {
+    display: flex;
+    flex: 0 1 auto;
+    width: 100%;
+    justify-content: center;
+    min-width: 0;
+  }
+
   .site-header:has(.archive-toolbar--header) .archive-toolbar--header {
-    display: contents;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem 1rem;
+    width: max-content;
+    max-width: 100%;
+    margin-inline: auto;
   }
 
   .site-header:has(.archive-toolbar--header) .archive-toolbar--header > div:first-child {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: start;
-    width: min(100%, 27.5rem, calc(100vw - 5.5rem));
+    flex: 0 1 auto;
+    width: auto;
+    max-width: min(100%, 36rem);
     min-width: 0;
   }
 
   .site-header:has(.archive-toolbar--header) .toolbar-instagram {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: start;
-    align-self: start;
-    margin:
-      0.14rem
-      0
-      0
-      min(26rem, calc(100vw - 4.6rem));
+    align-self: center;
+    margin: 0;
   }
 
   .site-header:has(.archive-toolbar--header) .archive-filters {
     flex-wrap: wrap;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 0.55rem;
-    width: 100%;
+    width: auto;
+    max-width: 100%;
     margin: 0;
     padding: 0.15rem 0 0.25rem;
     overflow: visible;
@@ -1696,11 +1762,7 @@ body.post-page-caption-visible article.post-shell[data-carousel] .caption-panel 
 
 @media (max-width: 640px) {
   .site-header:has(.archive-toolbar--header) .archive-toolbar--header > div:first-child {
-    width: min(100%, 21.25rem, calc(100vw - 5.5rem));
-  }
-
-  .site-header:has(.archive-toolbar--header) .toolbar-instagram {
-    margin-left: min(21.8rem, calc(100vw - 4.6rem));
+    max-width: min(100%, 29rem);
   }
 
   .site-header:has(.archive-toolbar--header) .archive-filters {
@@ -1758,40 +1820,6 @@ body.post-page-caption-visible article.post-shell[data-carousel] .caption-panel 
 
   .post-card-meta {
     font-size: 0.6rem;
-  }
-
-  .archive-toolbar--header {
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 0.75rem 1rem;
-    max-width: 100%;
-    min-width: 0;
-    justify-content: flex-end;
-  }
-
-  .archive-toolbar--header > div:first-child {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .archive-filters {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    margin: 0 -0.25rem;
-    padding: 0 0.25rem 0.25rem;
-    gap: 0.65rem;
-  }
-
-  .archive-filters::-webkit-scrollbar {
-    display: none;
-  }
-
-  .series-chip {
-    flex-shrink: 0;
   }
 
   .post-card-spotlight-title {
