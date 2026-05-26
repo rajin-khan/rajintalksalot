@@ -382,6 +382,7 @@ export function initPostCarousel(root: ParentNode = document) {
   const track = shell?.querySelector<HTMLElement>("[data-carousel-track]");
   const parts = getPostCarouselParts(root);
   const stackRoot = parts?.stackRoot;
+  const stackTouchTarget = shell?.querySelector<HTMLElement>(".stack-carousel__viewport");
 
   const pages = Array.from(shell?.querySelectorAll<HTMLElement>("[data-carousel-scroll-page]") ?? []);
   const simpleCarousel = shell?.querySelector<HTMLElement>("[data-simple-carousel]");
@@ -695,9 +696,10 @@ export function initPostCarousel(root: ParentNode = document) {
   });
 
   track.addEventListener("wheel", onWheel, { passive: false, signal: ctrl.signal });
-  shell.addEventListener("touchstart", onTouchStart, { passive: true, signal: ctrl.signal });
-  shell.addEventListener("touchmove", onTouchMove, { passive: false, signal: ctrl.signal });
-  shell.addEventListener("touchend", onTouchEnd, { passive: true, signal: ctrl.signal });
+  const touchTarget = stackTouchTarget ?? stackRoot;
+  touchTarget.addEventListener("touchstart", onTouchStart, { passive: true, signal: ctrl.signal });
+  touchTarget.addEventListener("touchmove", onTouchMove, { passive: false, signal: ctrl.signal });
+  touchTarget.addEventListener("touchend", onTouchEnd, { passive: true, signal: ctrl.signal });
   window.addEventListener("keydown", onKeydown, { signal: ctrl.signal });
   window.addEventListener("scroll", scheduleMobileScan, { passive: true, signal: ctrl.signal });
   window.addEventListener("resize", scheduleMobileScan, { passive: true, signal: ctrl.signal });

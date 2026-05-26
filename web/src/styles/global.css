@@ -1041,13 +1041,16 @@ body.archive-return-entering.archive-return-visible .grid-shell {
     overscroll-behavior: none;
   }
 
-  .carousel.carousel--stack,
-  .stack-carousel__viewport,
-  .stack-carousel__figure,
   .slide-hero-stack {
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
+  }
+
+  .carousel.carousel--stack,
+  .stack-carousel__viewport,
+  .stack-carousel__figure {
+    touch-action: auto;
   }
 
   .caption-panel {
