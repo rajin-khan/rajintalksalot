@@ -412,6 +412,8 @@ export function initPostCarousel(root: ParentNode = document) {
   let transitionGeneration = 0;
   let locked = false;
   let touchStartY: number | null = null;
+  let touchStartX: number | null = null;
+  let touchHasAdvanced = false;
 
   const setDots = (ix: number) => {
     dots.forEach((dot, i) => {
@@ -631,14 +633,46 @@ export function initPostCarousel(root: ParentNode = document) {
 
   const onTouchStart = (event: TouchEvent) => {
     if (!isLockedDeck() || shouldIgnoreNavigationEvent(event.target)) return;
-    touchStartY = event.touches[0]?.clientY ?? null;
+    const touch = event.touches[0];
+    touchStartY = touch?.clientY ?? null;
+    touchStartX = touch?.clientX ?? null;
+    touchHasAdvanced = false;
+  };
+
+  const onTouchMove = (event: TouchEvent) => {
+    if (!isLockedDeck() || touchStartY === null || shouldIgnoreNavigationEvent(event.target)) return;
+
+    // In the desktop stack, vertical swipes belong to the deck, not the page.
+    event.preventDefault();
+
+    const touch = event.touches[0];
+    if (!touch || locked || touchHasAdvanced) return;
+
+    const deltaY = touchStartY - touch.clientY;
+    const deltaX = touchStartX === null ? 0 : touchStartX - touch.clientX;
+    const verticalIntent = Math.abs(deltaY) > Math.abs(deltaX) * 0.75;
+
+    if (!verticalIntent || Math.abs(deltaY) < 52) return;
+
+    touchHasAdvanced = true;
+    touchStartY = touch.clientY;
+    touchStartX = touch.clientX;
+    advance(deltaY > 0 ? 1 : -1);
   };
 
   const onTouchEnd = (event: TouchEvent) => {
     if (!isLockedDeck() || touchStartY === null || shouldIgnoreNavigationEvent(event.target)) return;
+    if (touchHasAdvanced) {
+      touchStartY = null;
+      touchStartX = null;
+      touchHasAdvanced = false;
+      return;
+    }
+
     const endY = event.changedTouches[0]?.clientY ?? touchStartY;
     const delta = touchStartY - endY;
     touchStartY = null;
+    touchStartX = null;
     if (Math.abs(delta) < 42) return;
     advance(delta > 0 ? 1 : -1);
   };
@@ -662,6 +696,7 @@ export function initPostCarousel(root: ParentNode = document) {
 
   track.addEventListener("wheel", onWheel, { passive: false, signal: ctrl.signal });
   shell.addEventListener("touchstart", onTouchStart, { passive: true, signal: ctrl.signal });
+  shell.addEventListener("touchmove", onTouchMove, { passive: false, signal: ctrl.signal });
   shell.addEventListener("touchend", onTouchEnd, { passive: true, signal: ctrl.signal });
   window.addEventListener("keydown", onKeydown, { signal: ctrl.signal });
   window.addEventListener("scroll", scheduleMobileScan, { passive: true, signal: ctrl.signal });

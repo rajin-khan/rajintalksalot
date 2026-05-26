@@ -1036,6 +1036,25 @@ body.archive-return-entering.archive-return-visible .grid-shell {
   cursor: ns-resize;
 }
 
+@media (min-width: 1024px) and (orientation: landscape) {
+  body.post-stack-body-lock {
+    overscroll-behavior: none;
+  }
+
+  .carousel.carousel--stack,
+  .stack-carousel__viewport,
+  .stack-carousel__figure,
+  .slide-hero-stack {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .caption-panel {
+    touch-action: pan-y;
+  }
+}
+
 .simple-slide-carousel {
   display: none;
 }
